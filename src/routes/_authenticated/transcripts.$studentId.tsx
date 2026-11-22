@@ -83,8 +83,8 @@ function TranscriptPage() {
           <div className="relative">
             <DocHeader settings={settings} title="Official Academic Transcript · Grades 9 – 12" subtitle="Secondary School Cumulative Record" />
 
-            <section className="mt-3 grid grid-cols-[28mm_1fr_26mm] gap-4">
-              <StudentPhoto path={student.photo_path} name={student.full_name} paper className="h-[34mm] w-[28mm]" />
+            <section className="mt-3 grid grid-cols-[26mm_1fr_24mm] gap-4">
+              <StudentPhoto path={student.photo_path} name={student.full_name} paper className="h-[32mm] w-[26mm]" />
               <dl className="grid grid-cols-2 gap-x-4 gap-y-1 self-center text-[10.5px]">
                 <Info k="Full legal name" v={student.full_name} wide />
                 <Info k="Student ID" v={student.student_code} mono />
@@ -95,19 +95,19 @@ function TranscriptPage() {
                 <Info k="Admission date" v={student.admission_date ?? "—"} />
               </dl>
               <div className="flex flex-col items-center justify-center text-center">
-                <QRCodeSVG value={verifyUrl} size={88} level="M" bgColor="transparent" fgColor="currentColor" className="text-paper-accent" />
+                <QRCodeSVG value={verifyUrl} size={80} level="M" bgColor="transparent" fgColor="currentColor" className="text-paper-accent" />
                 <p className="mt-1 text-[8px] uppercase tracking-wider text-paper-muted">Scan to verify</p>
               </div>
             </section>
 
-            <section className="mt-3 grid grid-cols-2 gap-3">
+            <section className="mt-2 grid grid-cols-2 gap-x-3 gap-y-2">
               {transcript.years.map((y) => (
                 <div key={y.grade}>
                   <div className="flex items-baseline justify-between border-b border-paper-accent pb-0.5">
                     <h2 className="font-display text-[13px] font-bold text-paper-accent">Grade {y.grade}</h2>
                     <span className="text-[9px] text-paper-muted">{y.academicYear || "\u00A0"}</span>
                   </div>
-                  <table className="doc-table mt-1 text-[9px] tabular">
+                  <table className="doc-table doc-compact mt-1 text-[9px] tabular">
                     <thead>
                       <tr>
                         <th className="text-left">Subject</th>
@@ -159,17 +159,17 @@ function TranscriptPage() {
               Annual average = mean of Semester I & II averages; cumulative average = mean of the annual averages.
             </p>
 
-            <section className="mt-5 grid grid-cols-3 items-end gap-8">
+            <section className="mt-3 grid grid-cols-3 items-end gap-8 break-inside-avoid">
               <SignatureBox label="Registrar" name={settings?.registrar_name} />
               <div className="flex flex-col items-center">
-                <div className="flex h-[26mm] w-[26mm] items-center justify-center rounded-full border-2 border-dashed border-paper-border text-[8px] uppercase tracking-wider text-paper-muted">
+                <div className="flex h-[22mm] w-[22mm] items-center justify-center rounded-full border-2 border-dashed border-paper-border text-[8px] uppercase tracking-wider text-paper-muted">
                   Official stamp
                 </div>
               </div>
               <SignatureBox label="Principal" name={settings?.principal_name} />
             </section>
 
-            <footer className="mt-4 flex justify-between border-t border-paper-border pt-1.5 text-[8px] text-paper-muted">
+            <footer className="mt-3 flex justify-between border-t border-paper-border pt-1.5 text-[8px] text-paper-muted">
               <span>Transcript no. {transcriptNo}</span>
               <span>Issued {issued.toLocaleDateString()} · Not valid without the school stamp and signatures</span>
             </footer>

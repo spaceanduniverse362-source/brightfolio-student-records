@@ -4,7 +4,7 @@ import { z } from "zod";
 import type { Database } from "@/integrations/supabase/types";
 
 export const verifyTranscript = createServerFn({ method: "GET" })
-  .inputValidator((input) => z.object({ token: z.string().uuid() }).parse(input))
+  .validator((input) => z.object({ token: z.string().uuid() }).parse(input))
   .handler(async ({ data }) => {
     const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
     const client = createClient<Database>(process.env["SUPABASE_URL"]!, key, {

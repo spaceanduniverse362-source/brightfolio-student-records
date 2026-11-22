@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FileDown, Printer } from "lucide-react";
 import { settingsQuery, studentsQuery, subjectsQuery, useClassMarks } from "@/lib/queries";
 import { classLabel, subjectsFor } from "@/lib/school";
@@ -48,6 +48,11 @@ function RostersPage() {
   const [sel, setSel] = useState<ClassSelection>({ grade: 9, section: "A", stream: null });
   const [period, setPeriod] = useState<Period>("annual");
   const passMark = Number(settings?.pass_mark ?? 50);
+
+  useEffect(() => {
+    document.documentElement.classList.add("print-landscape");
+    return () => document.documentElement.classList.remove("print-landscape");
+  }, []);
 
   const sections = useMemo(
     () => [...new Set(students.filter((s) => s.grade === sel.grade).map((s) => s.section))].sort(),
@@ -134,7 +139,7 @@ function RostersPage() {
       </ClassPicker>
 
       <div className="mt-6 overflow-x-auto rounded-2xl print:mt-0 print:overflow-visible print:rounded-none">
-        <article className="paper-sheet print-landscape relative mx-auto min-w-[1000px] p-8 shadow-2xl print:min-w-0 print:p-0 print:shadow-none">
+        <article className="paper-sheet relative mx-auto min-w-[900px] p-8 shadow-2xl print:min-w-0 print:p-0 print:shadow-none">
           <img src={EMBLEM_INK_URL} alt="" aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 opacity-[0.05]" />
           <DocHeader settings={settings} title={title} subtitle={`${cls} · Academic year ${settings?.current_academic_year ?? ""}`} />
           <table className="doc-table relative mt-4 text-[10px] tabular">

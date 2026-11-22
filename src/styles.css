@@ -243,6 +243,14 @@
   }
 }
 
+@utility doc-compact {
+  & th,
+  & td {
+    padding: 0.5px 4px;
+    line-height: 1.2;
+  }
+}
+
 @page {
   size: A4 portrait;
   margin: 8mm;
@@ -256,11 +264,16 @@
 @media print {
   html,
   body {
+    color-scheme: light;
     background: var(--paper) !important;
+    background-image: none !important;
     color: var(--paper-foreground);
   }
-  .print-landscape {
+  html.print-landscape body {
     page: landscape;
+  }
+  section[aria-label^="Notifications"] {
+    display: none !important;
   }
   .print-break {
     break-after: page;
