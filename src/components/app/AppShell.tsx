@@ -1,4 +1,5 @@
 import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
+import { displayLogin } from "@/lib/login";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import {
@@ -94,7 +95,7 @@ export function AppShell() {
           <ShieldAlert className="mx-auto h-10 w-10 text-gold" />
           <h1 className="mt-4 text-2xl font-semibold">Awaiting approval</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Your account <span className="text-foreground">{staff.data?.email}</span> is registered but has
+            Your account <span className="text-foreground">{displayLogin(staff.data?.email)}</span> is registered but has
             not been given access yet. Ask the school admin to approve you under Settings → Staff access.
           </p>
           <Button variant="outline" className="mt-6" onClick={signOut}>
@@ -126,7 +127,7 @@ export function AppShell() {
         <Brand />
         <div className="flex-1 overflow-y-auto px-3 py-4">{nav}</div>
         <div className="border-t border-sidebar-border p-4 text-xs text-muted-foreground">
-          <p className="truncate">{staff.data.email}</p>
+          <p className="truncate">{displayLogin(staff.data.email)}</p>
           <p className="mt-0.5 capitalize text-gold">{staff.data.roles.join(" · ")}</p>
         </div>
       </aside>
@@ -236,7 +237,7 @@ function LockScreen({
       <form onSubmit={submit} className="glass-strong w-full max-w-sm rounded-3xl p-8 text-center">
         <Emblem className="mx-auto h-20 w-20" />
         <h1 className="mt-4 text-2xl font-semibold">Session locked</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{email}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{displayLogin(email)}</p>
         <Input
           type="password"
           autoFocus

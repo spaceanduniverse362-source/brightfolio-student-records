@@ -35,3 +35,4 @@ use the editor.
 - Printed documents (rosters, transcripts) use the `--paper-*` tokens and `paper-sheet`/`doc-table` utilities and print via the browser (Save as PDF). Why: the screen UI is dark but paper must be white and A4-ready.
 - Spreadsheet import/export goes through `src/lib/excel.ts`, which dynamically imports SheetJS in the browser. Why: keeps the library out of SSR and the initial bundle.
 - Public transcript verification only exposes the minimal fields returned by the `verify_transcript` security-definer function, looked up by an unguessable `verification_token`. Why: QR codes are public.
+- Staff may sign in with a username: `src/lib/login.ts` maps names without "@" to an internal never-mailed address and strips it for display. Why: the main admin logs in by username, not email.

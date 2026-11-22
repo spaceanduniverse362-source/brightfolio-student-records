@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { displayLogin } from "@/lib/login";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { DatabaseBackup, FileJson, FileSpreadsheet, Loader2, Plus, Save, ShieldCheck, Trash2, UserCheck, UserX } from "lucide-react";
@@ -308,7 +309,7 @@ function Staff({ isAdmin, me }: { isAdmin: boolean; me: string }) {
             <tr key={p.id} className="border-b border-glass-border/60">
               <td className="px-4 py-3">
                 <p className="font-medium">{p.full_name || "—"}</p>
-                <p className="text-xs text-muted-foreground">{p.email}</p>
+                <p className="text-xs text-muted-foreground">{displayLogin(p.email)}</p>
               </td>
               <td className="px-4 py-3">
                 {p.roles.length ? (

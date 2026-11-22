@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Emblem } from "@/components/app/Emblem";
+import { isUsernameLogin, toAuthEmail } from "@/lib/login";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -46,7 +47,7 @@ function AuthPage() {
     setNotice(null);
     try {
       if (mode === "signin") {
-        const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+        const { error } = await supabase.auth.signInWithPassword({ email: toAuthEmail(email), password });
         if (error) throw error;
         sessionStorage.removeItem("bh-locked");
         navigate({ to: "/dashboard", replace: true });
@@ -61,6 +62,7 @@ function AuthPage() {
         if (data.session) navigate({ to: "/dashboard", replace: true });
         else setNotice("Check your email and click the confirmation link, then sign in.");
       } else {
+        if (isUsernameLogin(email)) throw new Error("Username accounts can't reset by email. Ask the main admin.");
         const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
           redirectTo: window.location.origin + "/reset-password",
         });
@@ -98,8 +100,18 @@ function AuthPage() {
             </div>
           )}
           <div className="space-y-1.5">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required maxLength={255} />
+            <Label htmlFor="email">{mode === "signin" ? "Username or email" : "Email"}</Label>
+            <Input
+              id="email"
+              type={mode === "signin" ? "text" : "email"}
+              autoComplete={mode === "signin" ? "username" : "email"}
+              autoCapitalize="none"
+              spellCheck={false}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              maxLength={255}
+            />
           </div>
           {mode !== "forgot" && (
             <div className="space-y-1.5">
