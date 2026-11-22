@@ -15,6 +15,20 @@
       "when": 1795332317169,
       "tag": "0001_student_photo_access",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795335438059,
+      "tag": "0002_add_teacher_role",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1795335489535,
+      "tag": "0003_teachers_submissions_student_logins",
+      "breakpoints": true
     }
   ]
 }

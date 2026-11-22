@@ -83,6 +83,51 @@ export type Database = {
         }
         Relationships: []
       }
+      result_submissions: {
+        Row: {
+          academic_year: string
+          admin_note: string
+          grade: number
+          id: string
+          note: string
+          reviewed_at: string | null
+          section: string
+          semester: number
+          status: string
+          submitted_at: string
+          submitted_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          academic_year: string
+          admin_note?: string
+          grade: number
+          id?: string
+          note?: string
+          reviewed_at?: string | null
+          section: string
+          semester: number
+          status?: string
+          submitted_at?: string
+          submitted_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          academic_year?: string
+          admin_note?: string
+          grade?: number
+          id?: string
+          note?: string
+          reviewed_at?: string | null
+          section?: string
+          semester?: number
+          status?: string
+          submitted_at?: string
+          submitted_by?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       school_settings: {
         Row: {
           current_academic_year: string
@@ -115,6 +160,32 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      student_logins: {
+        Row: {
+          password: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          password?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          password?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_logins_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: true
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       students: {
         Row: {
@@ -203,6 +274,73 @@ export type Database = {
         }
         Relationships: []
       }
+      teacher_classes: {
+        Row: {
+          created_at: string
+          grade: number
+          id: string
+          section: string
+          teacher_id: string
+        }
+        Insert: {
+          created_at?: string
+          grade: number
+          id?: string
+          section: string
+          teacher_id: string
+        }
+        Update: {
+          created_at?: string
+          grade?: number
+          id?: string
+          section?: string
+          teacher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_classes_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teachers: {
+        Row: {
+          created_at: string
+          full_name: string
+          id: string
+          phone: string | null
+          user_id: string | null
+          username: string | null
+        }
+        Insert: {
+          created_at?: string
+          full_name: string
+          id?: string
+          phone?: string | null
+          user_id?: string | null
+          username?: string | null
+        }
+        Update: {
+          created_at?: string
+          full_name?: string
+          id?: string
+          phone?: string | null
+          user_id?: string | null
+          username?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teachers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -237,6 +375,7 @@ export type Database = {
           years_count: number
         }[]
       }
+      gen_student_password: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -245,6 +384,23 @@ export type Database = {
         Returns: boolean
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      is_teacher_of: {
+        Args: { _grade: number; _section: string; _user_id: string }
+        Returns: boolean
+      }
+      teacher_can_mark: {
+        Args: {
+          _grade: number
+          _semester: number
+          _student_id: string
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      teacher_reads_marks: {
+        Args: { _grade: number; _student_id: string; _user_id: string }
+        Returns: boolean
+      }
       verify_transcript: {
         Args: { _token: string }
         Returns: {
@@ -260,7 +416,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "registrar"
+      app_role: "admin" | "registrar" | "teacher"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -388,7 +544,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "registrar"],
+      app_role: ["admin", "registrar", "teacher"],
     },
   },
 } as const
