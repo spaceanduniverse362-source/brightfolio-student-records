@@ -70,3 +70,37 @@ export const cumulativeQuery = queryOptions({
     return new Map((data ?? []).map((r) => [r.student_id, { avg: Number(r.cumulative_average), years: r.years_count }]));
   },
 });
+
+export type ClassRef = { grade: number; section: string };
+
+/** Classes assigned to the signed-in teacher. */
+export const myClassesQuery = queryOptions({
+  queryKey: ["my-classes"],
+  queryFn: async (): Promise<ClassRef[]> => {
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) return [];
+    const { data, error } = await supabase
+      .from("teacher_classes")
+      .select("grade, section, teachers!inner(user_id)")
+      .eq("teachers.user_id", u.user.id)
+      .order("grade")
+      .order("section");
+    if (error) throw error;
+    return (data ?? []).map((r) => ({ grade: r.grade, section: r.section }));
+  },
+});
+
+export const submissionsQuery = (academicYear: string) =>
+  queryOptions({
+    queryKey: ["submissions", academicYear],
+    enabled: !!academicYear,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("result_submissions")
+        .select("*")
+        .eq("academic_year", academicYear)
+        .order("submitted_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });

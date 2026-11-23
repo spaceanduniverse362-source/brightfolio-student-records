@@ -73,6 +73,10 @@
   --color-paper-accent: var(--paper-accent);
   --color-paper-tint: var(--paper-tint);
   --color-paper-gold: var(--paper-gold);
+  --color-azure: var(--azure);
+  --color-azure-deep: var(--azure-deep);
+  --color-azure-soft: var(--azure-soft);
+  --color-azure-foreground: var(--azure-foreground);
 }
 
 :root {
@@ -127,6 +131,15 @@
   --sidebar-accent-foreground: oklch(0.97 0.01 250);
   --sidebar-border: oklch(1 0 0 / 0.08);
   --sidebar-ring: oklch(0.74 0.155 160 / 0.7);
+
+  /* Azure — student portal, report cards, rosters */
+  --azure: oklch(0.68 0.17 250);
+  --azure-deep: oklch(0.42 0.17 262);
+  --azure-soft: oklch(0.68 0.17 250 / 0.14);
+  --azure-foreground: oklch(0.98 0.01 250);
+  --gradient-azure: linear-gradient(135deg, oklch(0.74 0.16 235), oklch(0.5 0.2 262) 55%, oklch(0.32 0.12 268));
+  --gradient-azure-soft: linear-gradient(180deg, oklch(0.3 0.08 258 / 0.85), oklch(0.2 0.05 262 / 0.9));
+  --shadow-azure: 0 0 0 1px oklch(0.68 0.17 250 / 0.35), 0 30px 80px -30px oklch(0.55 0.2 258 / 0.7);
 
   /* Official paper documents */
   --paper: oklch(1 0 0);
@@ -211,6 +224,25 @@
 
 @utility bg-gradient-gold {
   background: var(--gradient-gold);
+}
+
+@utility bg-gradient-azure {
+  background: var(--gradient-azure);
+}
+
+@utility bg-gradient-azure-soft {
+  background: var(--gradient-azure-soft);
+}
+
+@utility glow-azure {
+  box-shadow: var(--shadow-azure);
+}
+
+/* Thick gradient frame: wrap content in an element with this utility, put a solid panel inside. */
+@utility frame-azure {
+  background: var(--gradient-azure);
+  padding: 6px;
+  box-shadow: var(--shadow-azure);
 }
 
 @utility tabular {

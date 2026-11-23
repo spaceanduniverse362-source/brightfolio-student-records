@@ -127,3 +127,54 @@ export function fmt(n: number | null | undefined, digits = 1): string {
   if (n === null || n === undefined) return "—";
   return Number.isInteger(n) && digits <= 1 ? String(n) : n.toFixed(digits);
 }
+
+/** Semesters the admin has approved for students to see. */
+export type Published = { sem1: boolean; sem2: boolean };
+
+/** Hides a grade's marks for semesters that are not published yet; other grades are untouched. */
+export function publishedMarks(marks: Mark[], grade: number, published: Published): Mark[] {
+  return marks.filter((m) => m.grade !== grade || (m.semester === 1 ? published.sem1 : published.sem2));
+}
+
+export type ReportCard = {
+  student: Pick<Student, "id" | "student_code" | "full_name" | "gender" | "grade" | "section" | "stream">;
+  academicYear: string;
+  passMark: number;
+  classSize: number;
+  subjects: { code: string; name: string; sem1: number | null; sem2: number | null; annual: number | null; letter: string | null }[];
+  sem1: { total: number | null; average: number | null; rank: number | null };
+  sem2: { total: number | null; average: number | null; rank: number | null };
+  annual: { total: number | null; average: number | null; rank: number | null };
+  pass: boolean | null;
+};
+
+export function reportCards(rows: ClassResultRow[], subjects: Subject[], passMark: number, academicYear: string): ReportCard[] {
+  return rows.map((r) => ({
+    student: {
+      id: r.student.id,
+      student_code: r.student.student_code,
+      full_name: r.student.full_name,
+      gender: r.student.gender,
+      grade: r.student.grade,
+      section: r.student.section,
+      stream: r.student.stream,
+    },
+    academicYear,
+    passMark,
+    classSize: rows.length,
+    subjects: subjects.map((s) => {
+      const c = r.cells[s.id] ?? { sem1: null, sem2: null, annual: null };
+      return { code: s.code, name: s.name, ...c, letter: c.annual === null ? null : letterGrade(c.annual).letter };
+    }),
+    sem1: { ...r.sem1, rank: r.rank.sem1 },
+    sem2: { ...r.sem2, rank: r.rank.sem2 },
+    annual: { ...r.annual, rank: r.rank.annual },
+    pass: r.pass,
+  }));
+}
+
+export function ordinal(n: number): string {
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] ?? s[v] ?? s[0]!);
+}

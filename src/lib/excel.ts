@@ -55,3 +55,13 @@ export function downloadText(filename: string, content: string, type = "applicat
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+
+/** Every sheet as raw rows (arrays), for class lists with title rows above the header. */
+export async function readWorkbookSheets(file: File): Promise<{ name: string; rows: unknown[][] }[]> {
+  const XLSX = await import("xlsx");
+  const wb = XLSX.read(await file.arrayBuffer(), { type: "array", cellDates: true });
+  return wb.SheetNames.map((name) => ({
+    name,
+    rows: XLSX.utils.sheet_to_json<unknown[]>(wb.Sheets[name]!, { header: 1, defval: null, raw: true, blankrows: false }),
+  }));
+}

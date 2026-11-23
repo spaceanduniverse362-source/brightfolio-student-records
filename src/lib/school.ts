@@ -77,3 +77,9 @@ export function chunk<T>(arr: T[], size: number): T[][] {
   for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
   return out;
 }
+
+/** Grade 11–12 stream when a class list has no Stream column: section C is Social, other sections Natural. */
+export function defaultStream(grade: number, section: string): Stream | null {
+  if (!hasStreams(grade)) return null;
+  return section.trim().toUpperCase() === "C" ? "social" : "natural";
+}
