@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
-import { FileSpreadsheet, Loader2, Save, Upload } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { FileSpreadsheet, Loader2, Lock, Save, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { settingsQuery, studentsQuery, subjectsQuery, useClassMarks } from "@/lib/queries";
-import { chunk, classLabel, subjectsFor } from "@/lib/school";
+import { myClassesQuery, settingsQuery, studentsQuery, subjectsQuery, submissionsQuery, useClassMarks } from "@/lib/queries";
+import { useStaff } from "@/hooks/use-staff";
+import { chunk, classLabel, defaultStream, subjectsFor } from "@/lib/school";
 import { mean, rankBy, sum } from "@/lib/grading";
 import { downloadWorkbook, pick, readSpreadsheet } from "@/lib/excel";
 import { fmt } from "@/lib/results";
@@ -41,6 +42,20 @@ function MarksPage() {
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [dirty, setDirty] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
+  const { data: me } = useStaff();
+  const teacherOnly = !!me?.teacherOnly;
+  const { data: myClasses } = useQuery({ ...myClassesQuery, enabled: teacherOnly });
+  const { data: submissions = [] } = useQuery(submissionsQuery(settings?.current_academic_year ?? ""));
+  const submission = submissions.find((x) => x.grade === sel.grade && x.section === sel.section && x.semester === semester);
+  const locked = teacherOnly && (submission?.status === "submitted" || submission?.status === "approved");
+
+  useEffect(() => {
+    const first = myClasses?.[0];
+    if (teacherOnly && first && !myClasses.some((c) => c.grade === sel.grade && c.section === sel.section)) {
+      setSel({ grade: first.grade, section: first.section, stream: defaultStream(first.grade, first.section) });
+    }
+  }, [teacherOnly, myClasses, sel.grade, sel.section]);
 
   const sections = useMemo(
     () => [...new Set(students.filter((s) => s.grade === sel.grade).map((s) => s.section))].sort(),
@@ -205,20 +220,18 @@ function MarksPage() {
         actions={
           <>
             <Button variant="outline" onClick={template} disabled={!classStudents.length}><FileSpreadsheet /> Mark sheet</Button>
-            <Button variant="outline" asChild>
-              <label className="cursor-pointer">
-                <Upload /> Import Excel
-                <input type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) importSheet(f); e.target.value = ""; }} />
-              </label>
+            <input ref={fileInput} type="file" accept=".xlsx,.xls,.csv" className="hidden" aria-label="Marks spreadsheet" onChange={(e) => { const f = e.target.files?.[0]; if (f) void importSheet(f); e.target.value = ""; }} />
+            <Button variant="outline" onClick={() => fileInput.current?.click()} disabled={locked || !classStudents.length}>
+              <Upload /> Import Excel
             </Button>
-            <Button onClick={save} disabled={saving || dirty.size === 0}>
+            <Button onClick={save} disabled={saving || locked || dirty.size === 0}>
               {saving ? <Loader2 className="animate-spin" /> : <Save />} Save{dirty.size ? ` (${dirty.size})` : ""}
             </Button>
           </>
         }
       />
 
-      <ClassPicker value={sel} onChange={(v) => { if (dirty.size && !confirm("Discard unsaved marks?")) return; setSel(v); }} sections={sections}>
+      <ClassPicker value={sel} onChange={(v) => { if (dirty.size && !confirm("Discard unsaved marks?")) return; setSel(v); }} sections={sections} classes={teacherOnly ? (myClasses ?? []) : undefined}>
         <Pick label="Semester">
           <Select value={String(semester)} onValueChange={(v) => { if (dirty.size && !confirm("Discard unsaved marks?")) return; setSemester(Number(v) as 1 | 2); }}>
             <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
@@ -233,6 +246,16 @@ function MarksPage() {
         </p>
       </ClassPicker>
 
+      {teacherOnly && myClasses?.length === 0 && (
+        <p className="mt-4 rounded-2xl border border-gold/40 bg-gold/10 p-4 text-sm text-gold">No class is assigned to you yet. Ask the admin to assign your class.</p>
+      )}
+      {locked && (
+        <p className="mt-4 flex items-center gap-2 rounded-2xl border border-azure/40 bg-azure-soft p-4 text-sm">
+          <Lock className="h-4 w-4 text-azure" />
+          Semester {semester} was {submission?.status === "approved" ? "approved by the admin" : "sent to the admin"} — marks are locked.
+          {submission?.status === "submitted" && " If the admin returns it, you can edit again."}
+        </p>
+      )}
       <div className="glass mt-4 overflow-hidden rounded-2xl">
         <div className="max-h-[70vh] overflow-auto">
           <table className="w-full border-separate border-spacing-0 text-sm">
@@ -275,6 +298,7 @@ function MarksPage() {
                           onChange={(e) => setCell(k, e.target.value)}
                           onKeyDown={(e) => onKeyDown(e, r, c)}
                           onFocus={(e) => e.currentTarget.select()}
+                          readOnly={locked}
                           aria-label={`${s.full_name} ${sub.name}`}
                           className={cn(
                             "h-9 w-full rounded-md border bg-transparent text-center font-mono text-sm tabular outline-none transition focus:bg-primary/10 focus:ring-1 focus:ring-primary",

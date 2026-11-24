@@ -1,3 +1,4 @@
+import { RequireRole } from "@/components/app/RequireRole";
 import { createFileRoute } from "@tanstack/react-router";
 import { displayLogin } from "@/lib/login";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -27,7 +28,11 @@ export const Route = createFileRoute("/_authenticated/settings")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: SettingsPage,
+  component: () => (
+    <RequireRole role="staff">
+      <SettingsPage />
+    </RequireRole>
+  ),
 });
 
 function SettingsPage() {

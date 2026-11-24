@@ -4,6 +4,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import {
   BookOpenCheck,
+  Inbox,
+  Presentation,
   ClipboardList,
   GraduationCap,
   LayoutDashboard,
@@ -25,21 +27,24 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Emblem } from "./Emblem";
 import { cn } from "@/lib/utils";
 
+type Access = "staff" | "admin" | "teacher" | "all";
 const NAV = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/students", label: "Students", icon: Users },
-  { to: "/marks", label: "Marks Entry", icon: ClipboardList },
-  { to: "/rosters", label: "Master Rosters", icon: BookOpenCheck },
-  { to: "/transcripts", label: "Transcripts", icon: GraduationCap },
-  { to: "/settings", label: "Settings & Backup", icon: Settings },
-] as const;
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, access: "all" },
+  { to: "/students", label: "Students", icon: Users, access: "staff" },
+  { to: "/teachers", label: "Teachers", icon: Presentation, access: "admin" },
+  { to: "/marks", label: "Marks Entry", icon: ClipboardList, access: "all" },
+  { to: "/results", label: "Results Inbox", icon: Inbox, access: "all" },
+  { to: "/rosters", label: "Rosters & Report Cards", icon: BookOpenCheck, access: "all" },
+  { to: "/transcripts", label: "Transcripts", icon: GraduationCap, access: "staff" },
+  { to: "/settings", label: "Settings & Backup", icon: Settings, access: "staff" },
+] as const satisfies readonly { to: string; label: string; icon: unknown; access: Access }[];
 
 const IDLE_LOCK_MS = 10 * 60 * 1000;
 const LOCK_KEY = "bh-locked";
 
 export function AppShell() {
   const staff = useStaff();
-  const { data: settings } = useQuery({ ...settingsQuery, enabled: !!staff.data?.isStaff });
+  const { data: settings } = useQuery({ ...settingsQuery, enabled: !!(staff.data?.isStaff || staff.data?.isTeacher) });
   const [locked, setLocked] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -88,7 +93,7 @@ export function AppShell() {
     );
   }
 
-  if (!staff.data?.isStaff) {
+  if (!staff.data?.isStaff && !staff.data?.isTeacher) {
     return (
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="glass-strong max-w-md rounded-3xl p-8 text-center">
@@ -96,7 +101,7 @@ export function AppShell() {
           <h1 className="mt-4 text-2xl font-semibold">Awaiting approval</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Your account <span className="text-foreground">{displayLogin(staff.data?.email)}</span> is registered but has
-            not been given access yet. Ask the school admin to approve you under Settings → Staff access.
+            no access yet. Ask the school admin to give you access.
           </p>
           <Button variant="outline" className="mt-6" onClick={signOut}>
             <LogOut /> Sign out
@@ -119,7 +124,8 @@ export function AppShell() {
     );
   }
 
-  const nav = <NavList />;
+  const me = staff.data;
+  const nav = <NavList canSee={(a) => a === "all" || (a === "admin" ? me.isAdmin : a === "staff" ? me.isStaff : me.isTeacher)} teacher={me.teacherOnly} />;
 
   return (
     <div className="min-h-screen lg:pl-72 print:pl-0">
@@ -183,11 +189,11 @@ function Brand() {
   );
 }
 
-function NavList() {
+function NavList({ canSee, teacher }: { canSee: (a: Access) => boolean; teacher: boolean }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   return (
     <nav className="flex flex-col gap-1">
-      {NAV.map((item) => {
+      {NAV.filter((item) => canSee(item.access)).map((item) => {
         const active = path === item.to || path.startsWith(item.to + "/");
         return (
           <Link
@@ -201,7 +207,7 @@ function NavList() {
             )}
           >
             <item.icon className={cn("h-4 w-4", active ? "text-primary" : "text-muted-foreground")} />
-            {item.label}
+            {teacher && item.to === "/results" ? "Send Results" : teacher && item.to === "/rosters" ? "Class Roster" : item.label}
           </Link>
         );
       })}

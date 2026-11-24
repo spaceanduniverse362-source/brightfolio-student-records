@@ -12,12 +12,14 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as MyResultRouteImport } from './routes/my-result'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedMarksRouteImport } from './routes/_authenticated/marks'
 import { Route as AuthenticatedRostersRouteImport } from './routes/_authenticated/rosters'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedStudentsRouteImport } from './routes/_authenticated/students'
+import { Route as AuthenticatedTeachersRouteImport } from './routes/_authenticated/teachers'
 import { Route as VerifyTokenRouteImport } from './routes/verify.$token'
 import { Route as AuthenticatedTranscriptsIndexRouteImport } from './routes/_authenticated/transcripts.index'
 import { Route as AuthenticatedTranscriptsStudentIdRouteImport } from './routes/_authenticated/transcripts.$studentId'
@@ -34,6 +36,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MyResultRoute = MyResultRouteImport.update({
+  id: '/my-result',
+  path: '/my-result',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -66,6 +73,11 @@ const AuthenticatedStudentsRoute = AuthenticatedStudentsRouteImport.update({
   path: '/students',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedTeachersRoute = AuthenticatedTeachersRouteImport.update({
+  id: '/teachers',
+  path: '/teachers',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const VerifyTokenRoute = VerifyTokenRouteImport.update({
   id: '/verify/$token',
   path: '/verify/$token',
@@ -87,12 +99,14 @@ const AuthenticatedTranscriptsStudentIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/my-result': typeof MyResultRoute
   '/reset-password': typeof ResetPasswordRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/marks': typeof AuthenticatedMarksRoute
   '/rosters': typeof AuthenticatedRostersRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/students': typeof AuthenticatedStudentsRoute
+  '/teachers': typeof AuthenticatedTeachersRoute
   '/verify/$token': typeof VerifyTokenRoute
   '/transcripts/$studentId': typeof AuthenticatedTranscriptsStudentIdRoute
   '/transcripts/': typeof AuthenticatedTranscriptsIndexRoute
@@ -100,12 +114,14 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/my-result': typeof MyResultRoute
   '/reset-password': typeof ResetPasswordRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/marks': typeof AuthenticatedMarksRoute
   '/rosters': typeof AuthenticatedRostersRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/students': typeof AuthenticatedStudentsRoute
+  '/teachers': typeof AuthenticatedTeachersRoute
   '/verify/$token': typeof VerifyTokenRoute
   '/transcripts/$studentId': typeof AuthenticatedTranscriptsStudentIdRoute
   '/transcripts': typeof AuthenticatedTranscriptsIndexRoute
@@ -115,12 +131,14 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/my-result': typeof MyResultRoute
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/marks': typeof AuthenticatedMarksRoute
   '/_authenticated/rosters': typeof AuthenticatedRostersRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/students': typeof AuthenticatedStudentsRoute
+  '/_authenticated/teachers': typeof AuthenticatedTeachersRoute
   '/verify/$token': typeof VerifyTokenRoute
   '/_authenticated/transcripts/$studentId': typeof AuthenticatedTranscriptsStudentIdRoute
   '/_authenticated/transcripts/': typeof AuthenticatedTranscriptsIndexRoute
@@ -130,12 +148,14 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/my-result'
     | '/reset-password'
     | '/dashboard'
     | '/marks'
     | '/rosters'
     | '/settings'
     | '/students'
+    | '/teachers'
     | '/verify/$token'
     | '/transcripts/$studentId'
     | '/transcripts/'
@@ -143,12 +163,14 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/my-result'
     | '/reset-password'
     | '/dashboard'
     | '/marks'
     | '/rosters'
     | '/settings'
     | '/students'
+    | '/teachers'
     | '/verify/$token'
     | '/transcripts/$studentId'
     | '/transcripts'
@@ -157,12 +179,14 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/my-result'
     | '/reset-password'
     | '/_authenticated/dashboard'
     | '/_authenticated/marks'
     | '/_authenticated/rosters'
     | '/_authenticated/settings'
     | '/_authenticated/students'
+    | '/_authenticated/teachers'
     | '/verify/$token'
     | '/_authenticated/transcripts/$studentId'
     | '/_authenticated/transcripts/'
@@ -172,6 +196,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  MyResultRoute: typeof MyResultRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   VerifyTokenRoute: typeof VerifyTokenRoute
 }
@@ -197,6 +222,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/my-result': {
+      id: '/my-result'
+      path: '/my-result'
+      fullPath: '/my-result'
+      preLoaderRoute: typeof MyResultRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -241,6 +273,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStudentsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/teachers': {
+      id: '/_authenticated/teachers'
+      path: '/teachers'
+      fullPath: '/teachers'
+      preLoaderRoute: typeof AuthenticatedTeachersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/verify/$token': {
       id: '/verify/$token'
       path: '/verify/$token'
@@ -271,6 +310,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedRostersRoute: typeof AuthenticatedRostersRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedStudentsRoute: typeof AuthenticatedStudentsRoute
+  AuthenticatedTeachersRoute: typeof AuthenticatedTeachersRoute
   AuthenticatedTranscriptsStudentIdRoute: typeof AuthenticatedTranscriptsStudentIdRoute
   AuthenticatedTranscriptsIndexRoute: typeof AuthenticatedTranscriptsIndexRoute
 }
@@ -281,6 +321,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedRostersRoute: AuthenticatedRostersRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedStudentsRoute: AuthenticatedStudentsRoute,
+  AuthenticatedTeachersRoute: AuthenticatedTeachersRoute,
   AuthenticatedTranscriptsStudentIdRoute:
     AuthenticatedTranscriptsStudentIdRoute,
   AuthenticatedTranscriptsIndexRoute: AuthenticatedTranscriptsIndexRoute,
@@ -293,6 +334,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  MyResultRoute: MyResultRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   VerifyTokenRoute: VerifyTokenRoute,
 }

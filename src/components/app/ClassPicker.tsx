@@ -1,4 +1,4 @@
-import { GRADES, SECTIONS, hasStreams } from "@/lib/school";
+import { GRADES, SECTIONS, defaultStream, hasStreams } from "@/lib/school";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 
@@ -8,14 +8,42 @@ export function ClassPicker({
   value,
   onChange,
   sections,
+  classes,
   children,
 }: {
   value: ClassSelection;
   onChange: (v: ClassSelection) => void;
   sections?: string[];
+  /** When given (teachers), only these classes can be picked. */
+  classes?: { grade: number; section: string }[] | undefined;
   children?: React.ReactNode;
 }) {
   const secs = sections && sections.length ? sections : [...SECTIONS];
+  if (classes) {
+    return (
+      <div className="glass flex flex-wrap items-end gap-3 rounded-2xl p-4 print:hidden">
+        <Pick label="My class">
+          <Select
+            value={`${value.grade}|${value.section}`}
+            onValueChange={(v) => {
+              const [g, sec] = v.split("|") as [string, string];
+              onChange({ grade: Number(g), section: sec, stream: defaultStream(Number(g), sec) });
+            }}
+          >
+            <SelectTrigger className="w-48"><SelectValue placeholder="No class assigned" /></SelectTrigger>
+            <SelectContent>
+              {classes.map((c) => (
+                <SelectItem key={`${c.grade}|${c.section}`} value={`${c.grade}|${c.section}`}>
+                  Grade {c.grade} · Section {c.section}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Pick>
+        {children}
+      </div>
+    );
+  }
   return (
     <div className="glass flex flex-wrap items-end gap-3 rounded-2xl p-4 print:hidden">
       <Pick label="Grade">

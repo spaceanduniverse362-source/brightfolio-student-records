@@ -1,3 +1,4 @@
+import { RequireRole } from "@/components/app/RequireRole";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
@@ -23,7 +24,11 @@ export const Route = createFileRoute("/_authenticated/transcripts/$studentId")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: TranscriptPage,
+  component: () => (
+    <RequireRole role="staff">
+      <TranscriptPage />
+    </RequireRole>
+  ),
 });
 
 function TranscriptPage() {
