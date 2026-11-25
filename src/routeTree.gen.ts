@@ -16,6 +16,7 @@ import { Route as MyResultRouteImport } from './routes/my-result'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedMarksRouteImport } from './routes/_authenticated/marks'
+import { Route as AuthenticatedResultsRouteImport } from './routes/_authenticated/results'
 import { Route as AuthenticatedRostersRouteImport } from './routes/_authenticated/rosters'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedStudentsRouteImport } from './routes/_authenticated/students'
@@ -56,6 +57,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
 const AuthenticatedMarksRoute = AuthenticatedMarksRouteImport.update({
   id: '/marks',
   path: '/marks',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedResultsRoute = AuthenticatedResultsRouteImport.update({
+  id: '/results',
+  path: '/results',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedRostersRoute = AuthenticatedRostersRouteImport.update({
@@ -103,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/marks': typeof AuthenticatedMarksRoute
+  '/results': typeof AuthenticatedResultsRoute
   '/rosters': typeof AuthenticatedRostersRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/students': typeof AuthenticatedStudentsRoute
@@ -118,6 +125,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/marks': typeof AuthenticatedMarksRoute
+  '/results': typeof AuthenticatedResultsRoute
   '/rosters': typeof AuthenticatedRostersRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/students': typeof AuthenticatedStudentsRoute
@@ -135,6 +143,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/marks': typeof AuthenticatedMarksRoute
+  '/_authenticated/results': typeof AuthenticatedResultsRoute
   '/_authenticated/rosters': typeof AuthenticatedRostersRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/students': typeof AuthenticatedStudentsRoute
@@ -152,6 +161,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/dashboard'
     | '/marks'
+    | '/results'
     | '/rosters'
     | '/settings'
     | '/students'
@@ -167,6 +177,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/dashboard'
     | '/marks'
+    | '/results'
     | '/rosters'
     | '/settings'
     | '/students'
@@ -183,6 +194,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/_authenticated/dashboard'
     | '/_authenticated/marks'
+    | '/_authenticated/results'
     | '/_authenticated/rosters'
     | '/_authenticated/settings'
     | '/_authenticated/students'
@@ -252,6 +264,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMarksRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/results': {
+      id: '/_authenticated/results'
+      path: '/results'
+      fullPath: '/results'
+      preLoaderRoute: typeof AuthenticatedResultsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/rosters': {
       id: '/_authenticated/rosters'
       path: '/rosters'
@@ -307,6 +326,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedMarksRoute: typeof AuthenticatedMarksRoute
+  AuthenticatedResultsRoute: typeof AuthenticatedResultsRoute
   AuthenticatedRostersRoute: typeof AuthenticatedRostersRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedStudentsRoute: typeof AuthenticatedStudentsRoute
@@ -318,6 +338,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedMarksRoute: AuthenticatedMarksRoute,
+  AuthenticatedResultsRoute: AuthenticatedResultsRoute,
   AuthenticatedRostersRoute: AuthenticatedRostersRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedStudentsRoute: AuthenticatedStudentsRoute,
