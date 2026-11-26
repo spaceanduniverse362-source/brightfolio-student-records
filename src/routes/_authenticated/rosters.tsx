@@ -1,7 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { FileDown, Printer } from "lucide-react";
+import { Archive, FileDown, FileText, Loader2, School } from "lucide-react";
+import { toast } from "sonner";
+import { useStaff } from "@/hooks/use-staff";
+import { fetchMarksForStudents, myClassesQuery } from "@/lib/queries";
+import { defaultStream } from "@/lib/school";
+import { reportCards } from "@/lib/results";
 import { settingsQuery, studentsQuery, subjectsQuery, useClassMarks } from "@/lib/queries";
 import { classLabel, subjectsFor } from "@/lib/school";
 import { computeClassResults, fmt, type ClassResultRow, type Period } from "@/lib/results";
@@ -49,10 +54,53 @@ function RostersPage() {
   const [period, setPeriod] = useState<Period>("annual");
   const passMark = Number(settings?.pass_mark ?? 50);
 
+  const { data: me } = useStaff();
+  const teacherOnly = !!me?.teacherOnly;
+  const { data: myClasses } = useQuery({ ...myClassesQuery, enabled: teacherOnly });
+  const [busy, setBusy] = useState<string | null>(null);
   useEffect(() => {
-    document.documentElement.classList.add("print-landscape");
-    return () => document.documentElement.classList.remove("print-landscape");
-  }, []);
+    const f = myClasses?.[0];
+    if (teacherOnly && f && !myClasses.some((c) => c.grade === sel.grade && c.section === sel.section))
+      setSel({ grade: f.grade, section: f.section, stream: defaultStream(f.grade, f.section) });
+  }, [teacherOnly, myClasses, sel.grade, sel.section]);
+  const school = {
+    name: settings?.school_name ?? "Burka Harbu Special Secondary School",
+    local: settings?.school_name_local ?? "",
+    principal: settings?.principal_name ?? "",
+    registrar: settings?.registrar_name ?? "",
+  };
+  const year = settings?.current_academic_year ?? "";
+  async function run(key: string, fn: () => Promise<void>) {
+    setBusy(key);
+    try { await fn(); } catch (e) { toast.error((e as Error).message || "Could not create file"); } finally { setBusy(null); }
+  }
+  const tag = `G${sel.grade}${sel.section}`;
+  const rosterPdfDl = () => run("roster", async () => {
+    const pdf = await import("@/lib/pdf");
+    pdf.downloadBlob(await pdf.rosterPdf({ rows, subjects: classSubjects, period, grade: sel.grade, section: sel.section, stream: sel.stream, academicYear: year, passMark, school }), `roster-${tag}-${period}.pdf`);
+  });
+  const cardsDl = (mode: "pdf" | "zip", only?: string) => run(only ?? mode, async () => {
+    const pdf = await import("@/lib/pdf");
+    let cards = reportCards(rows, classSubjects, passMark, year);
+    if (only) cards = cards.filter((c) => c.student.id === only);
+    if (mode === "pdf") pdf.downloadBlob(await pdf.reportCardsPdf(cards, school), only ? pdf.reportCardFileName(cards[0]!) : `report-cards-${tag}.pdf`);
+    else pdf.downloadBlob(await pdf.reportCardsZip([{ folder: tag, cards }], school), `report-cards-${tag}.zip`);
+  });
+  const schoolZip = () => run("school", async () => {
+    const pdf = await import("@/lib/pdf");
+    const active = students.filter((s) => s.status === "active");
+    const marks = await fetchMarksForStudents(active.map((s) => s.id));
+    const keys = [...new Set(active.map((s) => `${s.grade}|${s.section}|${s.stream ?? ""}`))].sort();
+    const groups = keys.map((k) => {
+      const [g, sec, st] = k.split("|") as [string, string, string];
+      const grade = Number(g);
+      const list = active.filter((s) => s.grade === grade && s.section === sec && (s.stream ?? "") === st).sort((a, b) => a.full_name.localeCompare(b.full_name));
+      const subs = subjectsFor(subjects, grade, st || null);
+      const r = computeClassResults(list, subs, marks.filter((m) => m.grade === grade), grade, passMark);
+      return { folder: `Grade ${grade}${sec}`, cards: reportCards(r, subs, passMark, year) };
+    });
+    pdf.downloadBlob(await pdf.reportCardsZip(groups, school, (d, t) => setBusy(`school:${d}/${t}`)), `report-cards-whole-school.zip`);
+  });
 
   const sections = useMemo(
     () => [...new Set(students.filter((s) => s.grade === sel.grade).map((s) => s.section))].sort(),
@@ -121,11 +169,18 @@ function RostersPage() {
         actions={
           <>
             <Button variant="outline" onClick={exportXlsx} disabled={!rows.length}><FileDown /> Excel</Button>
-            <Button variant="gold" onClick={() => window.print()} disabled={!rows.length}><Printer /> Print / PDF</Button>
+            <Button variant="outline" onClick={rosterPdfDl} disabled={!rows.length || !!busy}>{busy === "roster" ? <Loader2 className="animate-spin" /> : <FileText />} Roster PDF</Button>
+            {!teacherOnly && (
+              <>
+                <Button onClick={() => cardsDl("pdf")} disabled={!rows.length || !!busy}>{busy === "pdf" ? <Loader2 className="animate-spin" /> : <FileText />} Report cards PDF</Button>
+                <Button variant="outline" onClick={() => cardsDl("zip")} disabled={!rows.length || !!busy}>{busy === "zip" ? <Loader2 className="animate-spin" /> : <Archive />} Class ZIP</Button>
+                <Button variant="gold" onClick={schoolZip} disabled={!students.length || !!busy}>{busy?.startsWith("school") ? <Loader2 className="animate-spin" /> : <School />} {busy?.startsWith("school:") ? busy.slice(7) : "Whole school ZIP"}</Button>
+              </>
+            )}
           </>
         }
       />
-      <ClassPicker value={sel} onChange={setSel} sections={sections}>
+      <ClassPicker value={sel} onChange={setSel} sections={sections} classes={teacherOnly ? (myClasses ?? []) : undefined}>
         <Pick label="Period">
           <Select value={period} onValueChange={(v) => setPeriod(v as Period)}>
             <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
@@ -139,10 +194,18 @@ function RostersPage() {
       </ClassPicker>
 
       <div className="mt-6 overflow-x-auto rounded-2xl print:mt-0 print:overflow-visible print:rounded-none">
-        <article className="paper-sheet relative mx-auto min-w-[900px] p-8 shadow-2xl print:min-w-0 print:p-0 print:shadow-none">
+        <div className="frame-azure mx-auto min-w-[900px] rounded-3xl"><article className="relative rounded-[1.3rem] bg-gradient-azure-soft p-8">
           <img src={EMBLEM_INK_URL} alt="" aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 opacity-[0.05]" />
-          <DocHeader settings={settings} title={title} subtitle={`${cls} · Academic year ${settings?.current_academic_year ?? ""}`} />
-          <table className="doc-table relative mt-4 text-[10px] tabular">
+          <header className="relative flex items-center gap-4 rounded-2xl bg-azure-deep/60 p-4">
+            <img src={EMBLEM_INK_URL} alt="" className="h-16 w-16 invert" />
+            <div className="flex-1 text-center">
+              <p className="text-[10px] uppercase tracking-[0.25em] text-azure">{school.local}</p>
+              <h2 className="text-2xl font-bold uppercase">{school.name}</h2>
+              <p className="font-display text-gold">{title}</p>
+              <p className="text-xs text-muted-foreground">{cls} · Academic year {year}</p>
+            </div>
+          </header>
+          <table className="roster-table relative mt-4 text-[11px] tabular">
             <thead>
               <tr>
                 <th>No</th>
@@ -154,11 +217,12 @@ function RostersPage() {
                 <th>Avg</th>
                 <th>Rank</th>
                 <th>Remark</th>
+                {!teacherOnly && <th>PDF</th>}
               </tr>
             </thead>
             <tbody>
               {rows.length === 0 && (
-                <tr><td colSpan={classSubjects.length + 8} className="py-6 text-center text-paper-muted">No students in this class.</td></tr>
+                <tr><td colSpan={classSubjects.length + 8} className="py-6 text-center text-muted-foreground">No students in this class.</td></tr>
               )}
               {rows.map((r, i) => {
                 const p = pickPeriod(r, period);
@@ -176,14 +240,15 @@ function RostersPage() {
                     <td className="text-center font-semibold">{fmt(p.total)}</td>
                     <td className="text-center font-semibold">{fmt(p.average, 2)}</td>
                     <td className="text-center font-semibold">{p.rank ?? "—"}</td>
-                    <td className="text-center">{pass === null ? "—" : pass ? "Pass" : "Fail"}</td>
+                    <td className={`text-center font-semibold ${pass ? "text-success" : "text-destructive"}`}>{pass === null ? "—" : pass ? "Pass" : "Fail"}</td>
+                    {!teacherOnly && <td className="text-center"><button aria-label={`Report card for ${r.student.full_name}`} onClick={() => cardsDl("pdf", r.student.id)} className="text-azure hover:text-foreground"><FileDown className="inline h-3.5 w-3.5" /></button></td>}
                   </tr>
                 );
               })}
             </tbody>
           </table>
           <div className="relative mt-4 grid grid-cols-[auto_1fr] gap-8 text-[11px]">
-            <table className="doc-table w-auto">
+            <table className="roster-table w-auto">
               <thead><tr><th></th><th>M</th><th>F</th><th>Total</th></tr></thead>
               <tbody>
                 <tr><td>Enrolled</td><td className="text-center">{stats.m}</td><td className="text-center">{stats.f}</td><td className="text-center">{stats.total}</td></tr>
@@ -196,10 +261,10 @@ function RostersPage() {
               <SignatureBox label="Principal" name={settings?.principal_name} />
             </div>
           </div>
-          <p className="relative mt-3 text-[9px] text-paper-muted">
+          <p className="relative mt-3 text-[9px] text-muted-foreground">
             Pass mark {passMark}. Average = mean of subject scores{period === "annual" ? "; annual average = mean of Semester I and II averages" : ""}. Generated {new Date().toLocaleDateString()}.
           </p>
-        </article>
+        </article></div>
       </div>
     </div>
   );

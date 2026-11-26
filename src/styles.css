@@ -245,6 +245,24 @@
   box-shadow: var(--shadow-azure);
 }
 
+@utility roster-table {
+  width: 100%;
+  border-collapse: collapse;
+  & th,
+  & td {
+    border: 1px solid oklch(0.68 0.17 250 / 0.3);
+    padding: 4px 6px;
+  }
+  & thead th {
+    background: var(--gradient-azure);
+    color: var(--azure-foreground);
+    font-weight: 700;
+  }
+  & tbody tr:nth-child(even) td {
+    background: var(--azure-soft);
+  }
+}
+
 @utility tabular {
   font-variant-numeric: tabular-nums;
 }
