@@ -13,7 +13,7 @@ import { computeClassResults, fmt, type ClassResultRow, type Period } from "@/li
 import { downloadWorkbook } from "@/lib/excel";
 import { PageHeader } from "@/components/app/PageHeader";
 import { ClassPicker, Pick, inClass, type ClassSelection } from "@/components/app/ClassPicker";
-import { DocHeader, SignatureBox } from "@/components/app/DocHeader";
+import { SignatureBox } from "@/components/app/DocHeader";
 import { EMBLEM_INK_URL } from "@/components/app/Emblem";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
