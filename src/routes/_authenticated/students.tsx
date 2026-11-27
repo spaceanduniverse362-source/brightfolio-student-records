@@ -2,7 +2,7 @@ import { RequireRole } from "@/components/app/RequireRole";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { ArrowUpCircle, FileDown, GraduationCap, Pencil, Search, Trash2, Upload, UserPlus } from "lucide-react";
+import { KeyRound, ArrowUpCircle, FileDown, GraduationCap, Pencil, Search, Trash2, Upload, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { settingsQuery, studentsQuery } from "@/lib/queries";
@@ -103,6 +103,19 @@ function StudentsPage() {
     }
   }
 
+  async function exportLogins() {
+    const { data, error } = await supabase.from("student_logins").select("student_id, password");
+    if (error || !data?.length) return void toast.error("Only the admin can download student passwords");
+    const pw = new Map(data.map((r) => [r.student_id, r.password]));
+    await downloadWorkbook(`student-passwords-${new Date().toISOString().slice(0, 10)}.xlsx`, [
+      {
+        name: "Student logins",
+        rows: [["Student ID", "Full Name", "Class", "Password"], ...filtered.map((s) => [s.student_code, s.full_name, `${s.grade}${s.section}`, pw.get(s.id) ?? ""])],
+        widths: [14, 32, 8, 12],
+      },
+    ]);
+  }
+
   function exportList() {
     downloadWorkbook(`students-${new Date().toISOString().slice(0, 10)}.xlsx`, [
       {
@@ -131,6 +144,7 @@ function StudentsPage() {
               <ArrowUpCircle /> Promote
             </Button>
             <Button variant="outline" onClick={exportList}><FileDown /> Export</Button>
+            <Button variant="outline" onClick={exportLogins}><KeyRound /> Student passwords</Button>
             <Button variant="outline" onClick={() => setImportOpen(true)}><Upload /> Import</Button>
             <Button onClick={() => { setEditing(null); setDialogOpen(true); }}><UserPlus /> Register</Button>
           </>

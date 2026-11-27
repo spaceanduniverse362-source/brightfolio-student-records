@@ -5,10 +5,10 @@
 - [x] Rosters (print + Excel)
 - [x] Grade 9–12 transcript (print/PDF, QR verification)
 - [x] Settings: school info, subjects, staff access, backups
-- [ ] One login page with Admin / Teacher / Student tabs (no sign-up)
-- [ ] Teachers: accounts, class assignment, enter marks, send results to admin
-- [ ] Admin results inbox: approve (publish to students) / return
-- [ ] Student result page: blue bordered card, annual average, rank
-- [ ] Fix student import (multi-sheet class lists, auto codes)
-- [ ] Load uploaded 2019 student list (11/12: A,B Natural · C Social) and 27 teachers
-- [ ] Roster redesigned (not white) + PDF/ZIP report cards per student / class / school
+- [x] One login page with Admin / Teacher / Student tabs (no sign-up)
+- [x] Teachers: accounts, class assignment, enter marks, send results to admin
+- [x] Admin results inbox: approve (publish to students) / return
+- [x] Student result page: blue bordered card, annual average, rank
+- [x] Fix student import (multi-sheet class lists, auto codes)
+- [x] Load uploaded 2019 student list (11/12: A,B Natural · C Social) and 27 teachers
+- [x] Roster redesigned (not white) + PDF/ZIP report cards per student / class / school
