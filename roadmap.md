@@ -12,3 +12,9 @@
 - [x] Fix student import (multi-sheet class lists, auto codes)
 - [x] Load uploaded 2019 student list (11/12: A,B Natural · C Social) and 27 teachers
 - [x] Roster redesigned (not white) + PDF/ZIP report cards per student / class / school
+- [ ] Student ID lockout: five failures / fifteen minutes (await custom-limit tradeoff confirmation)
+- [ ] Calm professional roster screen and PDF
+- [ ] Standard, scholarship and combined transcript options, including student access
+- [ ] Refined admin and teacher profile area
+- [ ] Automatic Ethiopian year with historical/manual override
+- [ ] Grade 12 transcripts only, excluded from roster/report-card exports
